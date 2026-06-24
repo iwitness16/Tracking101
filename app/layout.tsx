@@ -1,3 +1,4 @@
+import { SmartsuppChat } from '@/components/smartsupp-chat'
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist_Mono, Inter, Sora } from 'next/font/google'
@@ -67,6 +68,7 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased">
         {children}
+        <SmartsuppChat />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
