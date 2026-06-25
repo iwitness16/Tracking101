@@ -1,5 +1,12 @@
 import { BrandLogo } from '@/components/brand-logo'
-import { Globe, Mail, MapPin, Phone } from 'lucide-react'
+import {
+  mailtoHref,
+  PHONE_DISPLAY,
+  SITE_EMAIL,
+  telHref,
+  whatsappHref,
+} from '@/lib/site-contact'
+import { Globe, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import Link from 'next/link'
 
 function LinkedInIcon({ className }: { className?: string }) {
@@ -50,7 +57,6 @@ const columns = [
     links: [
       { label: 'Track a Shipment', href: '/tracking' },
       { label: 'Get a Quote', href: '/contact' },
-      { label: 'Admin Dashboard', href: '/admin' },
       { label: 'Support', href: '/contact' },
     ],
   },
@@ -81,11 +87,26 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="size-4 text-primary" />
-                +31 (0) 10 555 0199
+                <a href={telHref} className="transition-colors hover:text-primary">
+                  {PHONE_DISPLAY}
+                </a>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <MessageCircle className="size-4 text-primary" />
+                <a
+                  href={whatsappHref()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-primary"
+                >
+                  WhatsApp {PHONE_DISPLAY}
+                </a>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="size-4 text-primary" />
-                hello@atlasswift.com
+                <a href={mailtoHref} className="transition-colors hover:text-primary">
+                  {SITE_EMAIL}
+                </a>
               </li>
             </ul>
           </div>

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { Shipment } from '@/lib/data'
+import type { TrackingShipment } from '@/lib/shipments'
 
 function makeIcon(color: string, pulse = false) {
   return L.divIcon({
@@ -40,7 +40,7 @@ function buildArc(
   return points
 }
 
-export function RouteMap({ shipment }: { shipment: Shipment }) {
+export function RouteMap({ shipment }: { shipment: TrackingShipment }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
 
@@ -111,7 +111,7 @@ export function RouteMap({ shipment }: { shipment: Shipment }) {
       ref={containerRef}
       className="h-full w-full"
       role="application"
-      aria-label={`Live route map for shipment ${shipment.trackingId}`}
+      aria-label={`Live route map for shipment ${shipment.consignmentNumber}`}
     />
   )
 }

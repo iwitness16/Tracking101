@@ -1,5 +1,6 @@
 import { Reveal } from '@/components/reveal'
 import { Button } from '@/components/ui/button'
+import { PHONE_DISPLAY, whatsappHref } from '@/lib/site-contact'
 import { ArrowRight, PhoneCall } from 'lucide-react'
 import Link from 'next/link'
 
@@ -40,10 +41,14 @@ export function CTA() {
               variant="outline"
               className="h-12 border-foreground/15 bg-white/80 px-6 text-base backdrop-blur transition-transform hover:-translate-y-0.5"
               render={
-                <Link href="/contact">
+                <a
+                  href={whatsappHref('Hello AtlasSwift Logistics, I would like to speak with an expert.')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <PhoneCall className="size-5" />
-                  Talk to an expert
-                </Link>
+                  {PHONE_DISPLAY}
+                </a>
               }
             />
           </div>

@@ -4,7 +4,14 @@ import { QuoteForm } from '@/components/contact/quote-form'
 import { Reveal } from '@/components/reveal'
 import { SectionHeading } from '@/components/section-heading'
 import { offices } from '@/lib/data'
-import { Clock, Mail, MapPin, Phone } from 'lucide-react'
+import {
+  mailtoHref,
+  PHONE_DISPLAY,
+  SITE_EMAIL,
+  telHref,
+  whatsappHref,
+} from '@/lib/site-contact'
+import { Clock, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Contact & Get a Quote',
@@ -16,13 +23,22 @@ const contactMethods = [
   {
     icon: Phone,
     label: 'Call us',
-    value: '+1 (800) 555-0192',
+    value: PHONE_DISPLAY,
+    href: telHref,
     sub: '24/7 global support line',
+  },
+  {
+    icon: MessageCircle,
+    label: 'WhatsApp',
+    value: PHONE_DISPLAY,
+    href: whatsappHref('Hello AtlasSwift Logistics, I would like to speak with your team.'),
+    sub: 'Chat with operations support',
   },
   {
     icon: Mail,
     label: 'Email us',
-    value: 'hello@atlasswift.com',
+    value: SITE_EMAIL,
+    href: mailtoHref,
     sub: 'Response within 1 business day',
   },
   {
@@ -43,7 +59,7 @@ export default function ContactPage() {
       />
 
       <section className="border-b border-border bg-background py-12">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
           {contactMethods.map((m, i) => (
             <Reveal key={m.label} delay={i * 80}>
               <div className="flex items-start gap-4 rounded-2xl border border-border bg-card p-6">
@@ -52,9 +68,20 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{m.label}</p>
-                  <p className="font-sans text-lg font-semibold text-card-foreground">
-                    {m.value}
-                  </p>
+                  {'href' in m && m.href ? (
+                    <a
+                      href={m.href}
+                      target={m.label === 'WhatsApp' ? '_blank' : undefined}
+                      rel={m.label === 'WhatsApp' ? 'noopener noreferrer' : undefined}
+                      className="font-sans text-lg font-semibold text-card-foreground transition-colors hover:text-primary"
+                    >
+                      {m.value}
+                    </a>
+                  ) : (
+                    <p className="font-sans text-lg font-semibold text-card-foreground">
+                      {m.value}
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">{m.sub}</p>
                 </div>
               </div>

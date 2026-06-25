@@ -1,3 +1,5 @@
+import { PHONE_DISPLAY } from '@/lib/site-contact'
+
 export const services = [
   {
     slug: 'air',
@@ -172,25 +174,25 @@ export const offices = [
     city: 'Rotterdam',
     region: 'EMEA HQ',
     address: 'Wilhelminakade 909, 3072 AP Rotterdam, Netherlands',
-    phone: '+31 10 555 0142',
+    phone: PHONE_DISPLAY,
   },
   {
     city: 'Singapore',
     region: 'APAC HQ',
     address: '8 Marina Blvd, Marina Bay Financial Centre, Singapore',
-    phone: '+65 6555 0178',
+    phone: PHONE_DISPLAY,
   },
   {
     city: 'Newark',
     region: 'Americas HQ',
     address: '1100 Raymond Blvd, Newark, NJ 07102, United States',
-    phone: '+1 (800) 555-0192',
+    phone: PHONE_DISPLAY,
   },
   {
     city: 'Dubai',
     region: 'Middle East',
     address: 'Jebel Ali Free Zone, Gate 4, Dubai, UAE',
-    phone: '+971 4 555 0166',
+    phone: PHONE_DISPLAY,
   },
 ]
 

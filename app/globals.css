@@ -404,3 +404,41 @@
 .leaflet-bar a:hover {
   background: oklch(0.96 0.008 260) !important;
 }
+
+/* Floating contact stack: WhatsApp above Smartsupp live chat */
+:root {
+  --floating-contact-inset: 1.5rem;
+  --floating-contact-inset-mobile: 1rem;
+  --floating-contact-fab-size: 3.75rem;
+  --floating-contact-gap: 0.75rem;
+}
+
+.floating-contact-whatsapp {
+  position: fixed;
+  right: calc(var(--floating-contact-inset) + env(safe-area-inset-right, 0px));
+  bottom: calc(
+    var(--floating-contact-inset) + var(--floating-contact-fab-size) +
+      var(--floating-contact-gap) + env(safe-area-inset-bottom, 0px)
+  );
+  z-index: 2147483646;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --floating-contact-inset: var(--floating-contact-inset-mobile);
+  }
+}
+
+/* Smartsupp live chat — bottom slot, aligned with WhatsApp column */
+#smartsupp-widget-container,
+#smartsupp-widget-container > div,
+iframe[id*='smartsupp'],
+div[id*='smartsupp-widget'] {
+  right: calc(var(--floating-contact-inset) + env(safe-area-inset-right, 0px)) !important;
+  bottom: calc(var(--floating-contact-inset) + env(safe-area-inset-bottom, 0px)) !important;
+  left: auto !important;
+}
+
+#smartsupp-widget-container {
+  z-index: 2147483645 !important;
+}

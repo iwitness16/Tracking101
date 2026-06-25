@@ -62,7 +62,7 @@ export function QuoteForm() {
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" />
+          <Input id="phone" type="tel" placeholder="+1 (825) 929-3315" />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="service">Service type</Label>
