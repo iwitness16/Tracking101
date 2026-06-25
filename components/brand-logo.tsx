@@ -35,20 +35,9 @@ export function BrandMark({ className }: { className?: string }) {
       aria-label="AtlasSwift logo"
       fill="none"
     >
-      <defs>
-        <linearGradient id="asg" x1="0" y1="0" x2="40" y2="40">
-          <stop offset="0" stopColor="oklch(0.62 0.26 22)" />
-          <stop offset="1" stopColor="oklch(0.48 0.22 28)" />
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="11" fill="url(#asg)" />
-      {/* Swift forward arrow / compass */}
-      <path
-        d="M20 8L29 28L20 23.5L11 28L20 8Z"
-        fill="oklch(0.99 0.005 25)"
-        fillOpacity="0.95"
-      />
-      <path d="M20 8L29 28L20 23.5V8Z" fill="oklch(0.99 0.005 25)" />
+      <rect width="40" height="40" fill="#FF002B" />
+      <path d="M20 8L11 28L20 23.5L20 8Z" fill="#FCEBEF" />
+      <path d="M20 8L29 28L20 23.5L20 8Z" fill="#FFFFFF" />
     </svg>
   )
 }
