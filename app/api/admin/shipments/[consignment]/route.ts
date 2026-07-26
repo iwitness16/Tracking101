@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { isAdminAuthenticated } from '@/lib/admin-auth'
-import { notifyReceiverShipmentUpdated } from '@/lib/shipment-notifications'
 import {
+  notifyAdminShipmentUpdated,
+  notifyReceiverShipmentUpdated,
+} from '@/lib/shipment-notifications'
+import {
+  deleteShipment,
   getShipmentByConsignment,
   updateShipment,
   type ShipmentInput,
@@ -20,19 +24,53 @@ export async function PUT(
     const body = (await request.json()) as Partial<ShipmentInput>
     const before = await getShipmentByConsignment(consignment)
     const shipment = await updateShipment(consignment, body)
-    const emailResult =
+
+    const [receiverEmail, adminEmail] =
       before && shipment
-        ? await notifyReceiverShipmentUpdated(before, shipment)
-        : { sent: false, error: 'Could not load previous shipment for comparison' }
-    if (!emailResult.sent) {
+        ? await Promise.all([
+            notifyReceiverShipmentUpdated(before, shipment),
+            notifyAdminShipmentUpdated(before, shipment),
+          ])
+        : [
+            { sent: false, error: 'Could not load previous shipment for comparison' },
+            { sent: false, error: 'Could not load previous shipment for comparison' },
+          ]
+
+    if (!receiverEmail.sent) {
       console.warn(
-        `[shipment-email] Update notification not sent for ${consignment}: ${emailResult.error}`,
+        `[shipment-email] Receiver update notification not sent for ${consignment}: ${receiverEmail.error}`,
       )
     }
-    return NextResponse.json({ shipment, email: emailResult })
+    if (!adminEmail.sent) {
+      console.warn(
+        `[shipment-email] Admin update notification not sent for ${consignment}: ${adminEmail.error}`,
+      )
+    }
+
+    return NextResponse.json({ shipment, email: receiverEmail, adminEmail })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Update failed' },
+      { status: 400 },
+    )
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ consignment: string }> },
+) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { consignment } = await params
+  try {
+    await deleteShipment(consignment)
+    return NextResponse.json({ deleted: true, consignment })
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Delete failed' },
       { status: 400 },
     )
   }

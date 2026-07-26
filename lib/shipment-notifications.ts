@@ -324,3 +324,249 @@ export async function notifyReceiverShipmentUpdated(
     text,
   })
 }
+
+// ---------------------------------------------------------------------------
+// Admin notifications — sent to ADMIN_EMAIL on every create / update
+// ---------------------------------------------------------------------------
+
+function adminEmailShell({
+  title,
+  preview,
+  bodyHtml,
+}: {
+  title: string
+  preview: string
+  bodyHtml: string
+}) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${title}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b;">
+  <span style="display:none;max-height:0;overflow:hidden;">${preview}</span>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f4f5;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;width:100%;background:#ffffff;border:1px solid #e4e4e7;">
+          <tr>
+            <td style="background:#1e293b;padding:20px 28px;">
+              <p style="margin:0;font-size:13px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">AtlasSwift Logistics — Admin Alert</p>
+              <p style="margin:6px 0 0;font-size:20px;font-weight:700;color:#ffffff;">${title}</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px;">
+              ${bodyHtml}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #e4e4e7;">
+              <p style="margin:0;font-size:11px;color:#94a3b8;">
+                This is an internal operations alert from AtlasSwift Logistics.
+                Do not forward this email — it contains shipment details.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+function adminFullDetailsTable(shipment: ShipmentRecord) {
+  const rows: Array<[string, string]> = [
+    ['Consignment #', shipment.consignmentNumber],
+    ['Status', shipment.status],
+    ['Delivery mode', shipment.deliveryMode],
+    ['Shipment type', shipment.typeOfShipment || '—'],
+    ['Carrier ref', shipment.carrierRefNumber || '—'],
+    ['Origin', shipment.route.originLabel],
+    ['Destination', shipment.route.destinationLabel],
+    ['Pickup', formatPickup(shipment.route)],
+    ['Dispatch', formatDateTime(shipment.route.dispatchAt)],
+    ['Expected delivery', formatDateTime(shipment.route.expectedDeliveryAt)],
+    ['Journey progress', `${shipment.route.journeyProgressPercent}%`],
+    ['', ''],
+    ['Shipper name', shipment.shipper.name || '—'],
+    ['Shipper phone', shipment.shipper.phone || '—'],
+    ['Shipper email', shipment.shipper.email || '—'],
+    ['Shipper address', shipment.shipper.address || '—'],
+    ['', ''],
+    ['Receiver name', shipment.receiver.name || '—'],
+    ['Receiver phone', shipment.receiver.phone || '—'],
+    ['Receiver email', shipment.receiver.email || '—'],
+    ['Receiver address', shipment.receiver.address || '—'],
+    ['', ''],
+    ['Product', shipment.cargo.product || '—'],
+    ['Total weight (kg)', `${Number(shipment.cargo.weightKg).toFixed(2)} kg`],
+    ['Package count', String(shipment.cargo.quantity)],
+    ['Payment mode', shipment.commercial.paymentMode || '—'],
+    ['Total freight', `$${Number(shipment.commercial.totalFreight).toFixed(2)}`],
+    ['Remarks', shipment.remarks || '—'],
+    ['Created at', formatDateTime(shipment.createdAt)],
+    ['Updated at', formatDateTime(shipment.updatedAt)],
+  ]
+
+  const tr = rows
+    .map(([label, value]) => {
+      if (label === '') {
+        return `<tr><td colspan="2" style="padding:4px 0;"></td></tr>`
+      }
+      return `<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#64748b;width:38%;vertical-align:top;">${label}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;color:#0f172a;font-weight:600;vertical-align:top;">${value}</td>
+      </tr>`
+    })
+    .join('')
+
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e2e8f0;border-radius:4px;overflow:hidden;margin:16px 0;">${tr}</table>`
+}
+
+export async function notifyAdminShipmentCreated(shipment: ShipmentRecord) {
+  const to = process.env.ADMIN_EMAIL?.trim()
+  if (!to) {
+    return { sent: false, error: 'ADMIN_EMAIL is not configured' }
+  }
+
+  const trackUrl = trackingUrl(shipment.consignmentNumber)
+  const bodyHtml = `
+    <p style="margin:0 0 6px;font-size:14px;color:#64748b;">A new shipment has been created and published.</p>
+    <p style="margin:0 0 20px;font-size:22px;font-weight:700;color:#0f172a;">${shipment.consignmentNumber}</p>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
+      <tr>
+        <td style="padding:6px 14px;background:#dcfce7;border-radius:4px;">
+          <p style="margin:0;font-size:13px;font-weight:700;color:#16a34a;">NEW SHIPMENT</p>
+        </td>
+        <td style="padding:6px 14px;background:#f1f5f9;border-radius:4px;margin-left:8px;">
+          <p style="margin:0;font-size:13px;color:#475569;">${shipment.status}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0f172a;">Full shipment details</p>
+    ${adminFullDetailsTable(shipment)}
+
+    <p style="margin:20px 0 0;text-align:left;">
+      <a href="${trackUrl}" style="display:inline-block;background:#1e293b;color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 20px;">
+        View tracking page →
+      </a>
+    </p>
+  `
+
+  const text = [
+    'NEW SHIPMENT CREATED — Admin notification',
+    '',
+    `Consignment: ${shipment.consignmentNumber}`,
+    `Status: ${shipment.status}`,
+    `Route: ${shipment.route.originLabel} → ${shipment.route.destinationLabel}`,
+    `Receiver: ${shipment.receiver.name} <${shipment.receiver.email}>`,
+    `Shipper: ${shipment.shipper.name}`,
+    `Product: ${shipment.cargo.product}`,
+    `Total freight: $${Number(shipment.commercial.totalFreight).toFixed(2)}`,
+    `Expected delivery: ${formatDateTime(shipment.route.expectedDeliveryAt)}`,
+    '',
+    `Tracking URL: ${trackUrl}`,
+  ].join('\n')
+
+  return sendEmail({
+    to,
+    subject: `[Admin] New shipment — ${shipment.consignmentNumber} (${shipment.status})`,
+    html: adminEmailShell({
+      title: 'New shipment created',
+      preview: `New: ${shipment.consignmentNumber} | ${shipment.route.originLabel} → ${shipment.route.destinationLabel}`,
+      bodyHtml,
+    }),
+    text,
+  })
+}
+
+export async function notifyAdminShipmentUpdated(
+  before: ShipmentRecord,
+  after: ShipmentRecord,
+) {
+  const to = process.env.ADMIN_EMAIL?.trim()
+  if (!to) {
+    return { sent: false, error: 'ADMIN_EMAIL is not configured' }
+  }
+
+  const changes = getShipmentChanges(before, after)
+  if (changes.length === 0) {
+    return { sent: false, error: 'No trackable changes detected' }
+  }
+
+  const trackUrl = trackingUrl(after.consignmentNumber)
+  const changeListHtml = changes
+    .map(
+      (line) =>
+        `<li style="margin:0 0 6px;font-size:13px;line-height:1.5;color:#334155;">${line}</li>`,
+    )
+    .join('')
+
+  const statusChanged = before.status !== after.status
+
+  const bodyHtml = `
+    <p style="margin:0 0 6px;font-size:14px;color:#64748b;">A shipment has been updated by the operations team.</p>
+    <p style="margin:0 0 20px;font-size:22px;font-weight:700;color:#0f172a;">${after.consignmentNumber}</p>
+
+    ${
+      statusChanged
+        ? `<table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
+        <tr>
+          <td style="padding:6px 14px;background:#fef3c7;border-radius:4px;">
+            <p style="margin:0;font-size:13px;font-weight:700;color:#92400e;">STATUS CHANGED</p>
+          </td>
+          <td style="padding:0 10px;font-size:14px;color:#64748b;">→</td>
+          <td style="padding:6px 14px;background:#dcfce7;border-radius:4px;">
+            <p style="margin:0;font-size:13px;font-weight:700;color:#16a34a;">${after.status}</p>
+          </td>
+        </tr>
+      </table>`
+        : ''
+    }
+
+    <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#0f172a;">What changed (${changes.length} field${changes.length === 1 ? '' : 's'})</p>
+    <ul style="margin:0 0 20px;padding-left:18px;">${changeListHtml}</ul>
+
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0f172a;">Current shipment details</p>
+    ${adminFullDetailsTable(after)}
+
+    <p style="margin:20px 0 0;">
+      <a href="${trackUrl}" style="display:inline-block;background:#1e293b;color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 20px;">
+        View tracking page →
+      </a>
+    </p>
+  `
+
+  const text = [
+    'SHIPMENT UPDATED — Admin notification',
+    '',
+    `Consignment: ${after.consignmentNumber}`,
+    `Status: ${before.status} → ${after.status}`,
+    '',
+    `Changes (${changes.length}):`,
+    ...changes.map((c) => `  - ${c}`),
+    '',
+    `Receiver: ${after.receiver.name} <${after.receiver.email}>`,
+    `Route: ${after.route.originLabel} → ${after.route.destinationLabel}`,
+    `Expected delivery: ${formatDateTime(after.route.expectedDeliveryAt)}`,
+    '',
+    `Tracking URL: ${trackUrl}`,
+  ].join('\n')
+
+  return sendEmail({
+    to,
+    subject: `[Admin] Shipment updated — ${after.consignmentNumber} (${after.status})`,
+    html: adminEmailShell({
+      title: 'Shipment updated',
+      preview: `Updated: ${after.consignmentNumber} | ${changes.length} change${changes.length === 1 ? '' : 's'} | Status: ${after.status}`,
+      bodyHtml,
+    }),
+    text,
+  })
+}

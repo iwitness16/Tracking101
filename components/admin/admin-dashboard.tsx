@@ -20,7 +20,7 @@ import {
   type PackageLineItem,
   type ShipmentRecord,
 } from '@/lib/shipments'
-import { Save, Search, Sparkles } from 'lucide-react'
+import { Save, Search, Sparkles, Trash2 } from 'lucide-react'
 
 type FormState = {
   consignmentNumber: string
@@ -115,6 +115,7 @@ export function AdminDashboard({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -219,6 +220,40 @@ export function AdminDashboard({
     setForm(toFormState(shipment))
   }
 
+  async function handleDeleteShipment(consignment: string) {
+    if (
+      !window.confirm(
+        `Permanently delete shipment ${consignment}? This cannot be undone.`,
+      )
+    ) {
+      return
+    }
+    setDeletingId(consignment)
+    setError('')
+    setSuccess('')
+    try {
+      const res = await fetch(
+        `/api/admin/shipments/${encodeURIComponent(consignment)}`,
+        { method: 'DELETE' },
+      )
+      const body = (await res.json()) as { error?: string }
+      if (!res.ok) {
+        setError(body.error ?? 'Failed to delete shipment.')
+        return
+      }
+      if (editingId === consignment) {
+        setEditingId(null)
+        setForm({ ...EMPTY_STATE, consignmentNumber: makeConsignmentNumber() })
+      }
+      setSuccess(`Shipment ${consignment} deleted.`)
+      await refreshList()
+    } catch {
+      setError('Unexpected error while deleting shipment.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -234,6 +269,8 @@ export function AdminDashboard({
 
       {mode === 'update' && (
         <div className="border border-border bg-card p-5">
+          {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
+          {success && <p className="mb-4 text-sm text-primary">{success}</p>}
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="font-heading text-xl font-semibold">Published Shipments</h2>
@@ -272,14 +309,27 @@ export function AdminDashboard({
                     </td>
                     <td className="px-2 py-3">{s.route.journeyProgressPercent.toFixed(1)}%</td>
                     <td className="px-2 py-3 text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-none"
-                        onClick={() => editShipment(s)}
-                      >
-                        Edit / Publish
-                      </Button>
+                      <div className="inline-flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-none"
+                          onClick={() => editShipment(s)}
+                        >
+                          Edit / Publish
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-none border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          disabled={deletingId === s.consignmentNumber}
+                          onClick={() => handleDeleteShipment(s.consignmentNumber)}
+                          aria-label={`Delete shipment ${s.consignmentNumber}`}
+                        >
+                          <Trash2 className="size-4" />
+                          {deletingId === s.consignmentNumber ? 'Deleting…' : 'Delete'}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

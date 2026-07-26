@@ -585,3 +585,17 @@ export async function updateShipment(
 
   return deriveTracking(updated)
 }
+
+export async function deleteShipment(consignmentNumber: string) {
+  const base = firestoreBase()
+  if (!base) {
+    throw new Error(
+      'Missing Firebase env vars: NEXT_PUBLIC_FIREBASE_PROJECT_ID and NEXT_PUBLIC_FIREBASE_API_KEY',
+    )
+  }
+  const { documentUrl } = base
+  const res = await fetch(documentUrl(consignmentNumber), { method: 'DELETE' })
+  if (!res.ok && res.status !== 404) {
+    throw new Error('Failed to delete shipment from Firestore.')
+  }
+}
