@@ -1,6 +1,6 @@
 export const SITE_EMAIL = 'info@atlasswiftlogistics.com'
-export const WHATSAPP_E164 = '19036922271'
-export const PHONE_DISPLAY = '+1 (903) 692-2271'
+export const WHATSAPP_E164 = '16727023280'
+export const PHONE_DISPLAY = '+1 (672) 702-3280'
 
 export const mailtoHref = `mailto:${SITE_EMAIL}`
 
